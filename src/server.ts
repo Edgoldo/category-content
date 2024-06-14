@@ -1,16 +1,17 @@
 const cors = require('cors');
+const dotenv = require('dotenv');
 const path = require('path');
-const express = require('express');
-const mongoose = require('mongoose');
-const authRoutes = require('./src/routes/authRoutes');
-const contentRoutes = require('./src/routes/contentRoutes');
-const categoryRoutes = require('./src/routes/categoryRoutes');
-const { authenticate } = require('./src/middleware/auth');
+import express, { Application } from 'express';
+import mongoose from 'mongoose';
+import authRoutes from './routes/authRoutes';
+import contentRoutes from './routes/contentRoutes';
+import categoryRoutes from './routes/categoryRoutes';
 
-require('dotenv').config();
+dotenv.config();
 
-const app = express();
+const app: Application = express();
 const PORT = process.env.PORT;
+const MONGODB_URI: string = process.env.MONGO_URI || '';
 
 // Conectar a MongoDB
 connectDB().then(() => {
@@ -18,7 +19,7 @@ connectDB().then(() => {
 }).catch(err => console.log(err));
 
 async function connectDB() {
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(MONGODB_URI);
 }
 
 app.use(express.json());
@@ -34,7 +35,7 @@ app.use('/api/content', contentRoutes);
 app.use('/api/categories', categoryRoutes);
 
 // Servir los archivos estáticos de la carpeta "uploads"
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en el puerto ${PORT}`);

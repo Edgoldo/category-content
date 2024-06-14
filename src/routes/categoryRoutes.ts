@@ -1,9 +1,9 @@
-const express = require('express');
+import express, { Router } from 'express';
 const categoryController = require('../controllers/categoryController');
 const { authenticate, authorize } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 
-const router = express.Router();
+const router: Router = express.Router();
 
 router.get('/', authenticate, categoryController.getCategories);
 router.get('/summary', categoryController.getCategoriesSummary);
@@ -13,4 +13,4 @@ router.post('/', [authenticate, authorize(['admin']), upload.single('image')], c
 router.put('/:id', [authenticate, authorize(['admin'])], categoryController.updateCategory);
 router.delete('/:id', [authenticate, authorize(['admin'])], categoryController.deleteCategory);
 
-module.exports = router;
+export default router;
