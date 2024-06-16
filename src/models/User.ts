@@ -1,7 +1,14 @@
-const mongoose = require('mongoose');
+import mongoose, { Schema, Document, CallbackError } from 'mongoose';
 const bcrypt = require('bcrypt');
 
-const userSchema = new mongoose.Schema({
+export interface UserDocument extends Document {
+  username: string,
+  email: string,
+  password: string,
+  role: 'admin' | 'creator' | 'reader'
+}
+
+const userSchema = new Schema<UserDocument>({
   username: {
     type: String,
     required: true,
@@ -25,20 +32,20 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function(this: UserDocument, next) {
   if (!this.isModified('password')) return next();
   try {
     this.password = await bcrypt.hash(this.password, 10);
     next();
   } catch (err) {
-    return next(err);
+    if (err instanceof Error)
+      return next(err);
   }
 });
 
-userSchema.methods.comparePassword = async function(password) {
+userSchema.methods.comparePassword = async function(this: UserDocument, password: string) {
   return await bcrypt.compare(password, this.password);
 };
 
-const User = mongoose.model('User', userSchema);
+export const User = mongoose.model<UserDocument>('User', userSchema);
 
-module.exports = User;

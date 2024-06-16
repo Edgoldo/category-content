@@ -1,22 +1,25 @@
-const User = require('../models/User');
+import { Request, Response } from "express";
+import { User, UserDocument } from '../models/User';
+import { UserRequest } from "../@types";
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
-exports.register = async (req, res) => {
+exports.register = async (req: Request, res: Response) => {
   try {
-    const { username, email, password, role } = req.body;
+    const { username, email, password, role }: UserDocument = req.body;
     const user = new User({ username, email, password , role});
     await user.save();
     const token = generateToken(user);
     res.status(201).json({ user, token });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    if (err instanceof Error)
+      res.status(400).json({ message: err.message });
   }
 };
 
-exports.login = async (req, res) => {
+exports.login = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
+    const { email, password }: UserDocument = req.body;
     const user = await User.findOne({ email });
     if (!user || !await bcrypt.compare(password, user.password)) {
       return res.status(401).json({ message: 'Credenciales inválidas' });
@@ -24,28 +27,31 @@ exports.login = async (req, res) => {
     const token = generateToken(user);
     res.json({ user, token });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    if (err instanceof Error)
+      res.status(400).json({ message: err.message });
   }
 };
 
-exports.getUser = async (req, res) => {
+exports.getUser = async (req: UserRequest, res: Response) => {
   try {
     const user = await User.findById(req.user.id);
     res.json(user);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    if (err instanceof Error)
+      res.status(400).json({ message: err.message });
   }
 };
 
-exports.updateUser = async (req, res) => {
+exports.updateUser = async (req: UserRequest, res: Response) => {
   try {
     const user = await User.findByIdAndUpdate(req.user.id, req.body, { new: true });
     res.json(user);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    if (err instanceof Error)
+      res.status(400).json({ message: err.message });
   }
 };
 
-function generateToken(user) {
+function generateToken(user: UserDocument) {``
   return jwt.sign({ id: user._id, role: user.role }, process.env.SECRET_KEY, { expiresIn: '1h' });
 }

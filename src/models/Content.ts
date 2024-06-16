@@ -1,6 +1,15 @@
-const mongoose = require('mongoose');
+import mongoose, { Schema, Document, Types } from 'mongoose';
 
-const contentSchema = new mongoose.Schema({
+export interface ContentDocument extends Document {
+  title: string,
+  description: string,
+  type: 'image' | 'video' | 'text',
+  url: string,
+  category: Types.ObjectId,
+  createdBy: Types.ObjectId
+}
+
+const contentSchema = new Schema<ContentDocument>({
   title: {
     type: String,
     required: true
@@ -30,6 +39,4 @@ const contentSchema = new mongoose.Schema({
   timestamps: true
 });
 
-const Content = mongoose.model('Content', contentSchema);
-
-module.exports = Content;
+export const Content = mongoose.model<ContentDocument>('Content', contentSchema);
