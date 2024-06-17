@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, Response } from 'express';
 import { User, UserDocument } from '../models/User';
 import { UserRequest } from "../@types";
 const jwt = require('jsonwebtoken');

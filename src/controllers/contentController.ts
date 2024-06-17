@@ -1,12 +1,14 @@
-const Content = require('../models/Content');
+import { Request, Response } from 'express';
+import { Content, ContentDocument } from '../models/Content';
+import { QueryFilter, QueryRequest, UserRequest } from '../@types';
 
-const contentPaginator = async (req) => {
-  let skipIndex = 0;
-  let totalElements = 9;
-  let totalPages = 0;
-  let totalContents = 0;
+const contentPaginator = async (req: Request) => {
+  let skipIndex: number = 0;
+  let totalElements: number = 9;
+  let totalPages: number = 0;
+  let totalContents: number = 0;
   try {
-    const { page = 1, limit = 9 } = req.query;
+    const { page = 1, limit = 9 }: QueryRequest = req.query;
     skipIndex = (page - 1) * limit;
     totalContents = await Content.countDocuments();
     totalPages = Math.ceil(totalContents / limit);
@@ -16,11 +18,11 @@ const contentPaginator = async (req) => {
   return [skipIndex, totalElements, totalPages, totalContents]
 }
 
-exports.getContent = async (req, res) => {
+exports.getContent = async (req: Request, res: Response) => {
   try {
     const [skipIndex, totalElements, totalPages, totalContents] = await contentPaginator(req);
-    const filter = {};
-    const { searchTerm = '', category = '' } = req.query;
+    const filter: QueryFilter = {};
+    const { searchTerm = '', category = ''}: QueryRequest = req.query;
     if (searchTerm) {
       filter.title = { $regex: new RegExp(searchTerm, 'i') };
     }
@@ -34,21 +36,23 @@ exports.getContent = async (req, res) => {
       .sort({ createdAt: -1 });
     res.json({ contents, totalPages, totalContents });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    if (err instanceof Error)
+      res.status(500).json({ message: err.message });
   }
 };
 
-exports.getContentById = async (req, res) => {
+exports.getContentById = async (req: Request, res: Response) => {
   try {
     const content = await Content.findById(req.params.id);
     if (!content) return res.status(404).json({ message: 'Contenido no encontrado' });
     res.json(content);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    if (err instanceof Error)
+      res.status(400).json({ message: err.message });
   }
 };
 
-exports.getContentByCategoryId = async (req, res) => {
+exports.getContentByCategoryId = async (req: Request, res: Response) => {
   try {
     const { categoryId } = req.params;
     const { searchTerm = '' } = req.query;
@@ -68,18 +72,19 @@ exports.getContentByCategoryId = async (req, res) => {
   }
 };
 
-exports.createContent = async (req, res) => {
+exports.createContent = async (req: UserRequest, res: Response) => {
   try {
-    const content = new Content(req.body);
+    const content: ContentDocument = new Content(req.body);
     content.createdBy = req.user.id;
     await content.save();
     res.status(201).json(content);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    if (err instanceof Error)
+      res.status(400).json({ message: err.message });
   }
 };
 
-exports.updateContent = async (req, res) => {
+exports.updateContent = async (req: UserRequest, res: Response) => {
   try {
     let content = await Content.findById(req.params.id);
     if (!content) return res.status(404).json({ message: 'Contenido no encontrado' });
@@ -89,11 +94,12 @@ exports.updateContent = async (req, res) => {
     content = await Content.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json(content);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    if (err instanceof Error)
+      res.status(400).json({ message: err.message });
   }
 };
 
-exports.deleteContent = async (req, res) => {
+exports.deleteContent = async (req: UserRequest, res: Response) => {
   try {
     const content = await Content.findById(req.params.id);
     if (!content) return res.status(404).json({ message: 'Contenido no encontrado' });
@@ -103,6 +109,7 @@ exports.deleteContent = async (req, res) => {
     await Content.findByIdAndDelete(req.params.id);
     res.json({ message: 'Contenido eliminado' });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    if (err instanceof Error)
+      res.status(400).json({ message: err.message });
   }
 };
