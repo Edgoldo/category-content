@@ -1,11 +1,16 @@
-const cors = require('cors');
-const dotenv = require('dotenv');
-const path = require('path');
 import express, { Application } from 'express';
 import mongoose from 'mongoose';
+
 import authRoutes from './routes/authRoutes';
 import contentRoutes from './routes/contentRoutes';
 import categoryRoutes from './routes/categoryRoutes';
+
+const cors = require('cors');
+const dotenv = require('dotenv');
+const path = require('path');
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('../swagger.json');
+
 
 dotenv.config();
 
@@ -15,11 +20,11 @@ const MONGODB_URI: string = process.env.MONGO_URI || '';
 
 // Conectar a MongoDB
 connectDB().then(() => {
-    console.log('Conectado a MongoDB');
+  console.log('Conectado a MongoDB');
 }).catch(err => console.log(err));
 
 async function connectDB() {
-    await mongoose.connect(MONGODB_URI);
+  await mongoose.connect(MONGODB_URI);
 }
 
 app.use(express.json());
@@ -40,3 +45,6 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en el puerto ${PORT}`);
 });
+
+// Incluye documentación de las apis
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
