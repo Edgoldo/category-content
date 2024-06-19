@@ -48,3 +48,5 @@ app.listen(PORT, () => {
 
 // Incluye documentación de las apis
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+module.exports = app;
